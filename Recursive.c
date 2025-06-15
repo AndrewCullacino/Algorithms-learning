@@ -16,6 +16,17 @@ struct list {
     struct node *head;
 };
 
+struct node *newNode(int value) {
+    struct node *n = malloc(sizeof(struct node));
+    if (n == NULL) {
+        fprintf(stderr, "error: out of memory\n");
+        exit(EXIT_FAILURE);
+    }
+    n->value = value;
+    n->next = NULL;
+    return n;
+}
+
 // Task1: shift a list recursively/normally
 /**
  * e.g. 
@@ -104,6 +115,47 @@ int listSumHelper(struct node *node) {
 
     return node->value = listSumHelper(node->next);
 }
+
+// insert into a list sorted
+/**
+ * e.g. [2, 5, 7]
+ * insert 3
+ * output:[2, 3, 5,7]
+ * 
+ * Additionally: the prototype is void, so we definitely need a helper
+ */
+void listInsertOrdered(struct list* list, int value) {
+    // the given list is sorted, so we must find the first value that is larger or equal to the given value
+    // therefore, we may need a helper function
+
+    //Edge: empty list
+    if (list == NULL) {
+        return NULL;
+    }
+
+    list->head = listInsertOrderedHelper(list->head, value);
+
+}
+
+struct node* listInsertOrderedHelper(struct node* head, int value) {
+    // BASE case: if the value should be the first node
+    if (head == NULL) {
+        return newNode(value);
+    }
+
+    if (head->value >= value) {
+        struct node* new = newNode(value);
+        new->next = head;
+        return new;
+    }
+
+    // recursive: the value should go somewhere else
+    head->next = listInsertOrderedHelper(head->next, value);
+    return head;    
+
+}
+
+
 
 
 
