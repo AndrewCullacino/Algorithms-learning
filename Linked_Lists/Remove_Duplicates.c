@@ -48,7 +48,3 @@ struct node* deleteDuplicates(struct node* head) {
 
     return head;
 }
-
-
-
-
