@@ -12,6 +12,10 @@ struct node {
     struct node *next;
 };
 
+struct list {
+    struct node *head;
+};
+
 // Task1: shift a list recursively/normally
 /**
  * e.g. 
@@ -76,3 +80,33 @@ struct node* listShiftLoop(struct node* list) {
 
     return last;
 }
+
+// listSum 
+/**
+ * This task is to practice using helper functions for recursive functions
+ * it should calculate the sum of all the values in the list 
+ * 
+ * Why do we need a helper here?
+ * the list, is a wrapper for user convinence, but we need to access raw data, which is in the nodes
+ */
+
+int listSum(struct list *list) {
+
+    return listSumHelper(list->head); 
+
+}
+
+int listSumHelper(struct node *node) {
+
+    if (node == NULL) {
+        return 0;
+    }
+
+    return node->value = listSumHelper(node->next);
+}
+
+
+
+
+
+
