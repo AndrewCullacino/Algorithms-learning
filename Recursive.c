@@ -92,7 +92,7 @@ struct node* listShiftLoop(struct node* list) {
     return last;
 }
 
-// listSum 
+// Task2: listSum 
 /**
  * This task is to practice using helper functions for recursive functions
  * it should calculate the sum of all the values in the list 
@@ -116,7 +116,7 @@ int listSumHelper(struct node *node) {
     return node->value = listSumHelper(node->next);
 }
 
-// insert into a list sorted
+// Task3: insert into a list sorted
 /**
  * e.g. [2, 5, 7]
  * insert 3
@@ -152,6 +152,37 @@ struct node* listInsertOrderedHelper(struct node* head, int value) {
     // recursive: the value should go somewhere else
     head->next = listInsertOrderedHelper(head->next, value);
     return head;    
+
+}
+
+// Task4: insert into nth position of the list
+/**
+ * e.g. [16, 7, 8]
+ * insert: 1 12
+ * output: [16, 12, 7, 8]
+ * n -> position
+ */
+void listInsertNth(struct list *list, int n, int value) {
+    if (list == NULL) return NULL;
+
+    list->head = listInsertNthHelper(list->head, n, value);
+
+}
+
+struct node* listInsertNthHelper(struct node* head, int n, int value) {
+    // so we need to find nth position
+
+    if (head == NULL) return newNode(value);
+    // BASE case: added to the first node
+    if (n == 0) {
+        struct node* new = newNode(value);
+        new->next = head;
+        return new;
+    }
+    
+    // recursive part
+    head->next = listInsertNthHelper(head->next, n - 1, value);
+    return head;
 
 }
 
