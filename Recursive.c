@@ -19,7 +19,7 @@ struct node {
  * output: 2 16 5
  */
 
-struct node* listShift (struct node *list) {
+struct node* listShiftRecursive (struct node *list) {
     // so we can start with empty list (NULL)
     // actually, when the list is only 1 element, same output
     if (list == NULL || list->next == NULL) {
@@ -52,4 +52,27 @@ struct node* listShift (struct node *list) {
     }
 
     return list;
+}
+
+// if we use normal loops
+struct node* listShiftLoop(struct node* list) {
+    // edge case
+    if (list == NULL || list->next == NULL) {
+        return list;
+    }
+
+    // using loop to find the second last and last
+    struct node *curr = list;
+    while (curr->next->next != NULL) {
+        curr = curr->next;
+    }
+    struct node *secondLast  = curr;
+
+    struct node *last = curr->next;
+
+    // then, we made the last node as first node, second node as last node
+    secondLast->next = NULL;
+    last->next = list;
+
+    return last;
 }
