@@ -145,5 +145,99 @@ void merge(int arr[], int lo, int mid, int hi) {
     }
 }
 
+/**
+ * Quick-sort: it's to use a pivot
+ * C = O(n)
+ */
+int partition(int arr[], int lo, int hi) {
+    int pivot = arr[lo];  // choose first element as pivot
+    
+    int left = lo + 1;    // start from element after pivot
+    int right = hi;       // start from last element
+    
+    while (true) {
+        // move left pointer right until we find element >= pivot
+        while (left < right && arr[left] <= pivot) {
+            left++;
+        }
+        
+        // move right pointer left until we find element <= pivot  
+        while (left < right && arr[right] >= pivot) {
+            right--;
+        }
+        
+        // if pointers meet, we're done
+        if (left == right) break;
+        
+        // swap the out-of-place elements
+        int temp = arr[left];
+        arr[left] = arr[right];
+        arr[right] = temp;
+    }
+    
+    // put pivot in its final correct position
+    if (pivot > arr[left]) left--;
+    int temp = arr[lo];
+    arr[lo] = arr[left];
+    arr[left] = temp;
+    
+    return left;  // return pivot's final position
+}
 
-// Non-comparison sorting
+
+void quickSort(int arr[], int size) {
+    quickSortHelper(arr, 0, size - 1);
+}
+
+void quickSortHelper(int arr[], int lo, int hi) {
+    if (lo >= hi) return;  // base case: 1 or 0 elements
+    
+    // partition the array
+    int pivotIndex = partition(arr, lo, hi);
+    
+    // recursively sort left and right parts
+    quickSortHelper(arr, lo, pivotIndex - 1);      // left of pivot
+    quickSortHelper(arr, pivotIndex + 1, hi);      // right of pivot
+}
+
+/**
+ * median of 3
+ */
+void medianOfThreeQuickSort(int arr[], int lo, int hi) {
+    if (lo >= hi) return;  // base case
+    
+    // choose better pivot using median-of-three
+    medianOfThree(arr, lo, hi);
+    
+    // partition using the better pivot
+    int pivotIndex = partition(arr, lo, hi);
+    
+    // recursively sort left and right parts
+    medianOfThreeQuickSort(arr, lo, pivotIndex - 1);
+    medianOfThreeQuickSort(arr, pivotIndex + 1, hi);
+}
+
+void medianOfThree(int arr[], int lo, int hi) {
+    int mid = (lo + hi) / 2;
+    
+    // sort the three elements: arr[lo], arr[mid], arr[hi]
+    if (arr[mid] > arr[lo]) {
+        swap(&arr[mid], &arr[lo]);
+    }
+    if (arr[lo] > arr[hi]) {
+        swap(&arr[lo], &arr[hi]);
+    }
+    if (arr[mid] > arr[lo]) {
+        swap(&arr[mid], &arr[lo]);
+    }
+    
+    // now arr[lo] contains the median of the three
+}
+
+
+
+// Non-comparison sorting: Not included in the course
+
+/**
+ * Radix sorting
+ */
