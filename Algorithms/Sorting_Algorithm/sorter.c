@@ -12,6 +12,7 @@
 
 // Sorting algorithms
 static void selectionSort(Item items[], int lo, int hi);
+
 static void bubbleSort(Item items[], int lo, int hi);
 static void insertionSort(Item items[], int lo, int hi);
 static void shellSort(Item items[], int lo, int hi);
@@ -90,10 +91,42 @@ int main(int argc, char* argv[]) {
 ////////////////////////////////////////////////////////////////////////
 // Selection sort
 
-static void selectionSort(Item items[], int lo, int hi) {
-    
-}
+/**
+ * 1. Find the smallest value
+ * 2. Swap to the first
+ * 3. Change the bondaries
+ * 4. Repeat until the array is sorted
+ */
 
+static void selectionSort(Item items[], int lo, int hi) {
+
+	// first to find the smallest, initialize it as the first element
+    for (int i = lo; i < hi; i++) {
+
+		// this is the index
+		int min = i;
+		
+		for (int j = i + 1; j <= hi; j++) {
+			// the compare logic: if the item[j] is smaller than the founded min
+
+			if (lt(items[j], items[min])) {
+				// update the index if smaller found
+				min = j;
+			}
+		}
+
+		swap(items, i, min);
+		/**
+		 * this also same as:
+		 * 
+		 * if min != j
+		 * int temp = item[i];
+		 * item[i] = item[min];
+		 * item[min] = temp; 
+		 */
+	}
+
+}
 
 
 
