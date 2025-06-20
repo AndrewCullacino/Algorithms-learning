@@ -15,6 +15,7 @@ all: gen \
 gen: gen.c
 	$(CC) $(CFLAGS) -o gen gen.c
 
+# the 's' is used to identify which file to make
 selectionSort: sorter.c
 	$(CC) "-DSORT='s'" $(CFLAGS) -o selectionSort sorter.c
 
