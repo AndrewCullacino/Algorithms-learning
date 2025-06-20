@@ -22,7 +22,11 @@ static void medianOfThreeQuickSort(Item items[], int lo, int hi);
 static void randomisedQuickSort(Item items[], int lo, int hi);
 
 // Utilities provided: this is actually very useful to learn
+
+// swap the item[j] to the position i
 static inline void swap(Item items[], int i, int j);
+
+// display every element in the array
 static void display(Item items[], int lo, int hi);
 
 
@@ -89,7 +93,7 @@ int main(int argc, char* argv[]) {
 ////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////
-// Selection sort
+// Selection sort: All cases: O(n^2)
 
 /**
  * 1. Find the smallest value
@@ -128,9 +132,61 @@ static void selectionSort(Item items[], int lo, int hi) {
 
 }
 
+////////////////////////////////////////////////////////////////////////
+// Bubble sort: O(n^2)
+
+/**
+ * 1. Compare adjacent element starting from the beginning
+ * 2. Swap them if they are in wrong order
+ * 3. Repeat with the reduced range
+ */
+
+static void bubbleSort(Item items[], int lo, int hi) {
+	// from the highest index, so that each iteration could decrease the unsorted range
+	for (int i = hi; i > lo; i--) {
+		bool swapped = false;
+		for (int j = lo; j < i; j++) {
+			// compare to ajacent element
+			if (gt(item[j], item[j+1])) {
+				swap(items, j, j+1);
+				swapped = true;
+			}
+		}
+
+		// if no swap occur, the array is sorted
+		if (!swapped) break;
+
+	}
 
 
+}
 
+
+////////////////////////////////////////////////////////////////////////
+// Insertion sort: O(n^2)
+
+/**
+ * 1. spliting the array into sorted part (the 1st element) and unsorted part (the rest of array)
+ * 2. Taking one element from the unsorted and insert it to the right place
+ */
+static void insertionSort(Item items[], int lo, int hi) {
+	for (int i = lo + 1; i <= hi; i++) {
+		// current element should start from index 1, compare to index0, cause default is arr[0] is sortded
+		Item key = item[i];
+		int j = i - 1;	// start comparing with its previous value
+
+		// compare the key to all its previous elements
+		while (j >= lo && gt(item[j], key)) {
+			items[j + 1] = items[j];	// shift this element right
+			j--;
+		}
+
+		// to find the correct position for key
+		items[j + 1] = key;
+		
+	}
+
+}
 
 
 
