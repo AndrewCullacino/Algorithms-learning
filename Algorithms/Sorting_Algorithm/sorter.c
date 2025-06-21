@@ -244,14 +244,103 @@ static void shellSort(Item items[], int lo, int hi) {
 
 }
 
+////////////////////////////////////////////////////////////////////////
+// Mergesort: O(nlogn)
+
+/**
+ * 1. Divide the array into smaller subarrays
+ * 2. recursviely sort these subarrays
+ * 3. merge the sorted subarrays
+ */
+
+static void mergeSort(Item items[], int lo, int hi) {
+	// Base case: if the lo > hi, return
+	if (lo >= hi)	return;
+
+	// Else. we will continue dividing
+	int mid = (lo + hi) / 2;		// find the middle index
+	mergeSort(items, lo, mid);		// sort left half	
+	mergeSort(items, mid + 1, hi);	// sort right half
+	merge(items, lo, mid, hi);		// merge the 2 haves
 
 
+}
+
+static void merge(Item items[], int lo, int mid, int hi) {
+
+	// allocate temporary space
+	Item* temp = malloc((hi - lo + 1) * sizeof(Item));
+
+	int i = lo;
+	int j = mid + 1;	// index starting from right side
+	int k = 0;
 
 
+	// Compare elements from both and pick smaller ones
+	while (i <= mid && j <= hi) {
+		if (le(items[i], items[j])) {
+			temp[k++] = items[i++];
+			/**
+			 * This piece of code is post-increment(后加)
+			 * same as:
+			 * temp[k] = items[i];
+			 * i++;
+			 * k++;
+			 * 
+			 */
+		} else {
+			temp[k++] = items[j++];
+		}
+	}
 
+	// Copy remaining if any
+	while (i <= mid) temp[k++] = items[i++];
+	while (j <= hi) temp[k++] = items[j++];
 
+	// copy back to original array
+	for (i = lo, k = 0; i <= hi; i++, k++) {
+		items[i] = temp[k];
+	}
 
+	free(temp);
+}
 
+////////////////////////////////////////////////////////////////////////
+// Quicksort: divide and conquer: 分而治之
+
+/**
+ * 1. select a pivot element from array
+ * 2. partition(分割) around the pivot
+ * 3. recursivly sorting the subarrays
+ */
+
+static int partition(Item items[], int lo, int hi) {
+
+	Item pivot = items[lo];
+
+	int l = lo + 1;
+	int r = hi;
+	while(true) {
+		while (l < r && le(items[l], pivot)) l++;
+		while (l < r && ge(items[r], pivot)) r--;
+		if (l == r) break;
+		swap(items, l, r);
+
+	}
+
+	if (lt(pivot, items[l])) l--;
+	swap(items, lo, l);
+	return l;
+
+}
+
+static void naiveQuickSort(Item items[], int lo, int hi)
+{
+	if (lo >= hi) return;
+	int pivotIndex = partition(items, lo, hi);
+	naiveQuickSort(items, lo, pivotIndex - 1);
+	naiveQuickSort(items, pivotIndex + 1, hi);
+}
 
 
 
