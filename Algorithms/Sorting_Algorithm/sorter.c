@@ -147,7 +147,7 @@ static void bubbleSort(Item items[], int lo, int hi) {
 		bool swapped = false;
 		for (int j = lo; j < i; j++) {
 			// compare to ajacent element
-			if (gt(item[j], item[j+1])) {
+			if (gt(items[j], items[j+1])) {
 				swap(items, j, j+1);
 				swapped = true;
 			}
@@ -172,11 +172,11 @@ static void bubbleSort(Item items[], int lo, int hi) {
 static void insertionSort(Item items[], int lo, int hi) {
 	for (int i = lo + 1; i <= hi; i++) {
 		// current element should start from index 1, compare to index0, cause default is arr[0] is sortded
-		Item key = item[i];
+		Item key = items[i];
 		int j = i - 1;	// start comparing with its previous value
 
 		// compare the key to all its previous elements
-		while (j >= lo && gt(item[j], key)) {
+		while (j >= lo && gt(items[j], key)) {
 			items[j + 1] = items[j];	// shift this element right
 			j--;
 		}
@@ -188,9 +188,61 @@ static void insertionSort(Item items[], int lo, int hi) {
 
 }
 
+////////////////////////////////////////////////////////////////////////
+// Shell sort
+///////////////////////////////////////////////////////////////////////
+
+/**
+ * Best case: O(nlogn) Else: depend on the gap sequence
+ */
+
+/**
+ * 1. Choose a gap seqence
+ * 2. h-sorting
+ * 		Compare elements that are in h positions apart, swap if wrong order
+ * 3. when gap = 1. perform insertion sort
+ */
+
+static void shellSort(Item items[], int lo, int hi) {
+
+	// 1. Gap initialization
+	int size = hi - lo + 1;
+	int h;
+
+	// using Knuth's sequence (1, 4, 13, 40...)
+	// this step is used to calculate the largest valid gap
+	for (h = 1; h <= (size - 1)/9; h = (3 * h) + 1);
+
+	// 2. Perform gap insertion sort with decreasing gap
+	while (h > 0) {
+
+		// For each gap value, perform insertion sort on elements gap positions apart
+		for (int i = lo + h; i <= hi; i++) {
+			// store current eleemnt
+			Item currentItem = items[i];
+
+			// Find the position for ciurrent by compare to gap position before
+			int j = i;
+
+			// move elements that are greater than currentItem gap positions ahead
+			while (j >= lo + h && gt(items[j - h], currentItem)){
+				items[j] = items[j - h];	// shift elements forwardf
+				j -= h;						// move back by h positions
+			}
+
+			// place curritem in its correct position
+			items[j] = currentItem;
+
+		}
 
 
+		// reduce gap for next iteration
+		h = h / 3;
 
+	}
+
+
+}
 
 
 
