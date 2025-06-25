@@ -95,24 +95,79 @@ struct node *bstJoin(struct node *t1, struct node *t2) {
 	return min;
 }
 
+/**
+ * Delete all nodes that is smaller than the given value
+ */
 struct node *bstDelete(struct node *tree, int val) {
 
-    
+    if (tree == NULL) return tree;  // don't return NULL here since base case should not have NULL
 
+    if (val < tree->value) {
+        tree->left = bstDelete(tree->left, val);    // cannot use return bstDelete, cause it will disconnect from the uppper nodes
+        return tree;    // backup the current tree with updated tree->left
+    } else if (val > tree->value) {
+        tree->right = bstDelete(tree->right, val);
+        return tree;
+    } else {
 
+        struct node *newRoot = malloc(sizeof(struct node));
+		if (tree->left == NULL && tree->right == NULL) {
+			newRoot = NULL;
+		} else if (tree->right == NULL) {
+			newRoot = tree->left;
+		} else if (tree->left == NULL) {
+			newRoot = tree->right;
+		} else {
+			newRoot = bstJoin(tree->left, tree->right);
+		}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+		free(tree);
+		return newRoot;
+	}
 }
+
+/**
+ * free all nodes in the bst tree
+ */
+void bstFree(struct node *tree) {
+    if (tree == NULL) return;
+
+    bstFree(tree->left);
+    bstFree(tree->right);
+
+    free(tree);
+}
+
+/**
+ * Count how many nodes in the treee
+ */ 
+int bstSize(struct node *tree) {
+	
+    // Base case: if empty tree
+    if (tree == NULL) return 0;
+
+    else {
+        return 1 + bstSize(tree->left) + bstSize(tree->right);
+    }
+}
+
+/**
+ * count the height of a binary search tree
+ * height: how many levels
+ */
+int bstHeight(struct node *tree) {
+    if (tree == NULL) return -1;
+    else {
+        int leftHeight = bstHeight(tree->left);
+        int rightHeight = bstHeight(tree->right);
+
+        if (leftHeight > rightHeight) return leftHeight + 1;
+        else return rightHeight + 1;
+    }
+}
+
+
+
+
+
+
