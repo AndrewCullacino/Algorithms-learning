@@ -93,28 +93,78 @@ void bstShow(struct node *t) {
 
 // Returns the number of leaves in the given BST
 int bstNumLeaves(struct node *t) {
-	// TODO: Task 1 - Implement this function
-	return 0;
+	
+	if (t == NULL) return 0;
+
+	if (t->left == NULL && t->right == NULL) return 1;
+
+	return bstNumLeaves(t->left) + bstNumLeaves(t->right);
+
 }
 
 // Returns the range of the given BST
 int bstRange(struct node *t) {
-	// TODO: Task 2 - Implement this function
-	return 0;
+
+	if (t == NULL) return 0;
+
+	struct node *left = t;
+	while (left->left != NULL) {
+		left = left->left;
+	}
+	int lo = left->value;
+
+	struct node *right = t;
+	while (right->right != NULL) {
+		right = right->right;
+	}
+	int hi = right->value;
+
+	int range = hi - lo;
+
+	return range;
 }
 
 // Deletes all of the leaves in the given BST and returns the root of
 // the updated BST
 struct node *bstDeleteLeaves(struct node *t) {
-	// TODO: Task 3 - Implement this function
+
+	if (t == NULL) return NULL;
+
+	if (t->left == NULL && t->right == NULL) {
+		free(t);
+		return NULL;
+	}
+
+	t->left = bstDeleteLeaves(t->left);
+	t->right = bstDeleteLeaves(t->right);
+
 	return t;
 }
 
 // Returns the value in the BST which is closest to the given value
 // Assumes that the BST is not empty
 int bstClosest(struct node *t, int val) {
-	// TODO: Task 4 - Implement this function
-	return -1;
+	
+	int closest = t->value;
+
+	struct node *curr = t;
+	while (curr != NULL) {
+		if (abs(curr->value - val) < abs(closest - val)) {
+			closest = curr->value;
+		}
+
+		// if the same value found
+		if (curr->value == val) {
+			return val;
+		}
+
+		if (val < curr->value) curr = curr->left;
+		else curr = curr->right;
+
+	}
+
+	return closest;
+
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -148,13 +198,39 @@ void bstPostOrder(struct node *t) {
 
 // Prints the level-order traversal of the given BST
 void bstLevelOrder(struct node *t) {
-	// TODO: Task 5 - Implement this function
+	if (t == NULL) return;
+	// we are gonna print it using ADT queue
+	Queue q = QueueNew();
+	QueueEnqueue(q, t);
+	while (!QueueIsEmpty(q)) {
+		struct node *curr = QueueDequeue(q);
+		showBstNode(curr);
+
+		if (curr->left != NULL) QueueEnqueue(q, curr->left);
+		if (curr->right != NULL) QueueEnqueue(q, curr->right);
+
+	}
+
+	QueueFree(q);
 }
 
 // Prints the pre-order traversal of the given BST using an iterative
 // approach
 void bstIterativePreOrder(struct node *t) {
-	// TODO: Task 6 - Implement this function
+		if (t == NULL) return;
+
+	Stack s = StackNew();
+	StackPush(s, t);
+
+	while (!StackIsEmpty(s)) {
+		struct node *curr = t;
+		showBstNode(curr);
+
+		if (curr->right != NULL) StackPush(s, curr->right);
+		if (curr->left != NULL) StackPush(s, curr->left);
+	}
+
+	StackFree(s);
 }
 
 // Prints the value in the given node
