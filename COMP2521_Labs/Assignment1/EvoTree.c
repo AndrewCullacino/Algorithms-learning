@@ -10,6 +10,10 @@
 #include "EvoTree.h"
 #include "EvoTreeStructs.h"
 
+// Helper function prototypes
+static void freeNode(struct node *node);
+static int countNode(struct node *node);
+static void printInOrder(struct node *node, FILE *out, bool *isFirst);
 ////////////////////////////////////////////////////////////////////////
 // Basic Operations
 
@@ -17,15 +21,49 @@
  * Creates a new empty evolutionary tree
  */
 EvoTree EvoTreeNew(void) {
-    // TODO
-    return NULL;
+    // allocate memory for the evolutionary tree
+    struct evoTree *et = malloc(sizeof(struct evoTree));
+
+    // check if the memory allocation is successful
+    if (et == NULL) {
+        fprintf(stderr, "Error: Memory allocation failed.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // this tree is empty
+    et->root = NULL;
+
+    // return this new empty tree
+    return et;
 }
 
 /**
  * Frees all memory allocated to the evolutionary tree
  */
 void EvoTreeFree(EvoTree et) {
-    // TODO
+    // free all memory, which need to free every node and then the root
+
+    // but this function only has a evotree parameter, so we need a helper function
+    if (et == NULL) return;
+
+    freeNode(et->root);
+
+    free(et);
+}
+
+// helper function to free all nodes
+static void freeNode (struct node *node) {
+    if (node == NULL) return;
+
+    // recursively free left and right
+    freeNode(node->left);
+    freeNode(node->right);
+
+    // free the speciesName
+    free(node->speciesName);
+    
+    // free the node itself
+    free(node);
 }
 
 /**
@@ -33,15 +71,80 @@ void EvoTreeFree(EvoTree et) {
  * supplied species number already exists in the tree.
  */
 void EvoTreeInsert(EvoTree et, int speciesNumber, char *speciesName) {
-    // TODO
+    // check if the tree exists
+    if (et == NULL) return;
+
+    // create a new node
+    struct node *new = malloc(sizeof(struct node));
+    if (new == NULL) {
+        fprintf(stderr, "Error: Memory allocation failed.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // initialize the new node, copy speciesName
+    new->speciesName = strdup(speciesName);     // if this failed, it's an error
+    if (new->speciesName == NULL) {
+        fprintf(stderr, "Error: String duplicate failed.\n");
+        free(new);  // free the memory allocated
+        exit(EXIT_FAILURE);
+    }
+    new->speciesNumber = speciesNumber;
+    new->left == NULL;
+    new->right == NULL;
+
+    // for empty tree
+    if (et->root == NULL) {
+        et->root = new;
+        return;
+    }
+
+    // find the insertion place, also traverse to check duplicated species number
+    struct node *curr = et->root;
+    struct node *parent = NULL; // this is used for connect back to the root
+
+    while (curr != NULL) {
+        parent = curr;
+
+        // if duplicate found, free the memory and terminates immediately
+        if (speciesNumber == curr->speciesNumber) {
+            free(new->speciesName);
+            free(new);
+            return;
+        } else if (speciesNumber < curr->speciesNumber) {
+            curr = curr->left;
+        } else {
+            curr = curr->right;
+        }
+    }
+
+    // insert the newnode
+    if (speciesNumber < parent->speciesNumber) {
+        parent->left = new;
+    } else {
+        parent->right = new;
+    }
+
 }
 
 /**
  * Returns the number of species in the evolutionary tree
  */
 int EvoTreeNumSpecies(EvoTree et) {
-    // TODO
-    return -1;
+    // count how many nodes including root
+    if (et == NULL) {
+        return 0;
+    }
+
+    return countNode(et->root);
+
+}
+
+static int countNode (struct node *node) {
+    if (node == NULL) {
+        return 0;
+    }
+
+    return 1 + countNode(node->left) + countNode(node->right);
 }
 
 /**
@@ -53,7 +156,38 @@ int EvoTreeNumSpecies(EvoTree et) {
  * space.
  */
 void EvoTreePrint(EvoTree et, FILE *out) {
-    // TODO
+    // if et is NULL or file is NULL
+    if (et == NULL || out == NULL) return;
+
+    // print opening and closing brackets
+    fprintf(out, "{");
+
+    // print species in order
+    bool isFirst = true;
+    printInorder(et->root, out, &isFirst);
+
+    fprintf(out, "}");
+}
+
+static void printInOrder(struct node *node, FILE *out, bool *isFirst) {
+    // deal with empty node
+    if (node == NULL) return;
+
+    // visit smaller numbers (left node)
+    printInOrder(node->left, out, isFirst);
+
+    // Print current node
+    if (*isFirst) {
+        // First species - no comma needed
+        fprintf(out, "(%d, %s)", node->speciesNumber, node->speciesName);
+        *isFirst = false;
+    } else {
+        // Not the first species - add comma and space before
+        fprintf(out, ", (%d, %s)", node->speciesNumber, node->speciesName);
+    }
+    
+    // Visit right subtree last (larger numbers)
+    printInOrder(node->right, out, isFirst);
 }
 
 ////////////////////////////////////////////////////////////////////////
