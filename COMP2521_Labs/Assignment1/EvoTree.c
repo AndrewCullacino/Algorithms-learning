@@ -14,6 +14,8 @@
 static void freeNode(struct node *node);
 static int countNode(struct node *node);
 static void printInOrder(struct node *node, FILE *out, bool *isFirst);
+static int findRelativesHelper(struct node *node, int leftmost, int rightmost,
+                            int speciesNumber, Species relatives[], int count);
 ////////////////////////////////////////////////////////////////////////
 // Basic Operations
 
@@ -89,8 +91,8 @@ void EvoTreeInsert(EvoTree et, int speciesNumber, char *speciesName) {
         exit(EXIT_FAILURE);
     }
     new->speciesNumber = speciesNumber;
-    new->left == NULL;
-    new->right == NULL;
+    new->left = NULL;
+    new->right = NULL;
 
     // for empty tree
     if (et->root == NULL) {
@@ -164,7 +166,7 @@ void EvoTreePrint(EvoTree et, FILE *out) {
 
     // print species in order
     bool isFirst = true;
-    printInorder(et->root, out, &isFirst);
+    printInOrder(et->root, out, &isFirst);
 
     fprintf(out, "}");
 }
@@ -198,9 +200,27 @@ static void printInOrder(struct node *node, FILE *out, bool *isFirst) {
  * string "undefined" if there is no species with that species number.
  */
 char *EvoTreeFind(EvoTree et, int speciesNumber) {
-    // TODO
+    // handle invalid input
+
+    if (et == NULL) return "undefined";
+
+    if (et->root == NULL) return "undefined";
+
+    struct node *curr = et->root;
+    while (curr != NULL) {
+        if (speciesNumber == curr->speciesNumber) {
+            return curr->speciesName;
+        } else if (speciesNumber < curr->speciesNumber) {
+            curr = curr->left;
+        } else {
+            curr = curr->right;
+        }
+
+    }
+
     return "undefined";
 }
+
 
 /**
  * Given a species number, this function stores the species that make up
@@ -208,8 +228,47 @@ char *EvoTreeFind(EvoTree et, int speciesNumber) {
  * recency, and returns the number of species stored.
  */
 int EvoTreeHistory(EvoTree et, int speciesNumber, Species history[]) {
-    // TODO
-    return -1;
+    // for safety use concern, I still put the invalid input handle here
+    // although assuming the species of give number exists
+    
+    // it's finding the path between the given species and root reversely
+    // then counting how many edges are there
+    if (et == NULL || et->root == NULL) return 0;
+
+    // use temporary array to store in normal order (root -> target)
+    struct node *path[114514];
+    int pathlength = 0;
+
+    // search for target species
+    struct node *curr = et->root;
+    bool found = false;
+
+    // traverse the tree
+    while (curr != NULL) {
+        path[pathlength++] = curr;  // bug fix: increment should be done here
+
+        if (speciesNumber == curr->speciesNumber) {
+            found = true;
+            break;  // mission accomplished
+        } else if (speciesNumber < curr->speciesNumber) {
+            curr = curr->left;
+        } else {
+            curr = curr->right;
+        }
+
+    }
+
+    // if no species found, return 0
+    if (!found) return 0;
+
+    // fill up the history
+    for (int i = 0; i < pathlength; i++) {
+        history[i].name = path[pathlength - 1 - i]->speciesName;
+        history[i].number = path[pathlength - 1 - i]->speciesNumber;
+    }
+
+    return pathlength;
+
 }
 
 /**
@@ -222,9 +281,41 @@ int EvoTreeHistory(EvoTree et, int speciesNumber, Species history[]) {
  */
 int EvoTreeRelatives(EvoTree et, int speciesNumber,
                      int width, Species relatives[]) {
-    // TODO
-    return -1;
+    // handle invalid input
+    if (et == NULL || et->root == NULL) return 0;
+    
+    // the target: speciesNumber +/- width/2
+    // Range: [speciesNumber - width/2, speciesNumber + width/2]
+    int leftmost = speciesNumber - width;
+    int rightmost = speciesNumber + width;
+
+    return findRelativesHelper(et->root, leftmost, rightmost, speciesNumber, relatives, 0);
 }
+
+static int findRelativesHelper(struct node *node, int leftmost, int rightmost,
+                            int speciesNumber, Species relatives[], int count) {
+    if (node == NULL) return count;
+
+    // Process left subtree
+    count = findRelativesHelper(node->left, leftmost, rightmost, speciesNumber, relatives, count);
+    
+    // Only add if it's in range 
+    // bug fix: AND not the species itself
+    if (node->speciesNumber >= leftmost && node->speciesNumber <= rightmost && 
+        node->speciesNumber != speciesNumber) {
+        relatives[count].number = node->speciesNumber;
+        relatives[count].name = node->speciesName;
+        count++;
+    }
+    
+    // Process right subtree if needed
+    if (node->speciesNumber < rightmost) {
+        count = findRelativesHelper(node->right, leftmost, rightmost, speciesNumber, relatives, count);
+    }
+    
+    return count;
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 // Common Ancestry
