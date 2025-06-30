@@ -165,10 +165,13 @@ void EvoTreePrint(EvoTree et, FILE *out) {
     fprintf(out, "{");
 
     // print species in order
+
     bool isFirst = true;
     printInOrder(et->root, out, &isFirst);
+    
 
     fprintf(out, "}");
+    fflush(out);    //bug fix: ensure no newline
 }
 
 static void printInOrder(struct node *node, FILE *out, bool *isFirst) {
@@ -178,13 +181,10 @@ static void printInOrder(struct node *node, FILE *out, bool *isFirst) {
     // visit smaller numbers (left node)
     printInOrder(node->left, out, isFirst);
 
-    // Print current node
     if (*isFirst) {
-        // First species - no comma needed
         fprintf(out, "(%d, %s)", node->speciesNumber, node->speciesName);
         *isFirst = false;
     } else {
-        // Not the first species - add comma and space before
         fprintf(out, ", (%d, %s)", node->speciesNumber, node->speciesName);
     }
     
@@ -286,6 +286,8 @@ int EvoTreeRelatives(EvoTree et, int speciesNumber,
     
     // the target: speciesNumber +/- width/2
     // Range: [speciesNumber - width/2, speciesNumber + width/2]
+
+    // bug fix: DO NOT divide 2
     int leftmost = speciesNumber - width;
     int rightmost = speciesNumber + width;
 
@@ -326,8 +328,55 @@ static int findRelativesHelper(struct node *node, int leftmost, int rightmost,
  * the array.
  */
 Species EvoTreeCommonAncestor(EvoTree et, int speciesNumbers[], int size) {
-    // TODO
-    return (Species) {-1, "undefined"};
+    // handle invalid input
+    if (et == NULL || et->root == NULL) return (Species) {-1, "undefined"};
+
+    // only check the valid input in the array
+    // so deal with invalid arr size
+    if (size <= 0) return (Species) {-1, "undefined"};
+
+    // loop through each array element
+    // find valid input and put them into another array
+    // get the min and max to find the common ancestor(least upper node)
+
+    int validcount = 0;
+    int *validSpecies = malloc(sizeof(int) * size);
+
+    for (int i = 0; i < size; i++) {
+        char *name = EvoTreeFind(et, speciesNumbers[i]);
+        if (strcmp(name, "undefined") != 0) {
+            validSpecies[validcount++] = speciesNumbers[i];
+        }
+    }
+
+    // if no valid species found
+    if (validcount == 0) {
+        free(validSpecies);
+        return (Species) {-1, "undefined"};
+    }
+    // get the min and max
+    int min = validSpecies[0];
+    int max = validSpecies[0];
+    for (int i = 1; i < validcount; i++){
+        if (validSpecies[i] < min) min = validSpecies[i];
+        if (validSpecies[i] > max) max = validSpecies[i];
+    }
+    free(validSpecies);
+
+    // traverse the tree
+    struct node *curr = et->root;
+    while (curr != NULL) {
+        if (curr->speciesNumber < min) {
+            curr = curr->right;
+        } else if (curr->speciesNumber > max) {
+            curr = curr->left;
+        } else {
+            // now we find the node we want
+            break;
+        }
+    }
+
+    return (Species) {curr->speciesNumber, curr->speciesName};
 }
 
 /**
@@ -338,8 +387,79 @@ Species EvoTreeCommonAncestor(EvoTree et, int speciesNumbers[], int size) {
  */
 int EvoTreeEvolutionPath(EvoTree et, int speciesNumberA,
                          int speciesNumberB, Species path[]) {
-    // TODO
-    return -1;
+    
+    // assume the AB number are different
+    if (et == NULL || et->root == NULL) return 0;
+
+    // check if A and B are valid species number
+    char *nameA = EvoTreeFind(et, speciesNumberA);
+    char *nameB = EvoTreeFind(et, speciesNumberB);
+
+    if (strcmp(nameA, "undefined") == 0 || strcmp(nameB, "undefined") == 0) {
+        return 0;  // One or both species not found
+    }
+
+    struct node *pathToA[1000]; 
+    struct node *pathToB[1000];
+    int lenA = 0;
+    int lenB = 0;
+
+    struct node *curr = et->root;
+    while (curr != NULL) {
+        pathToA[lenA++] = curr;
+        if (curr->speciesNumber == speciesNumberA) {
+            break;
+        } else if (speciesNumberA < curr->speciesNumber) {
+            curr = curr->left;
+        } else {
+            curr = curr->right;
+        }
+    }
+    
+    curr = et->root;
+    while (curr != NULL) {
+        pathToB[lenB++] = curr;
+        if (curr->speciesNumber == speciesNumberB) {
+            break;
+        } else if (speciesNumberB < curr->speciesNumber) {
+            curr = curr->left;
+        } else {
+            curr = curr->right;
+        }
+    }
+
+    // go to root/lowerst common ancestor(lca)
+    int lcaIdx = 0;
+    while (lcaIdx < lenA && lcaIdx < lenB && 
+           pathToA[lcaIdx]->speciesNumber == pathToB[lcaIdx]->speciesNumber) {
+        lcaIdx++;
+    }
+    lcaIdx--; 
+
+    // initialzie and prepare
+    int pathIdx = 0;
+    
+    // Start with species A
+    path[pathIdx].number = speciesNumberA;
+    path[pathIdx].name = pathToA[lenA - 1]->speciesName;
+    pathIdx++;
+
+    // Go up from A to LCA
+    for (int i = lenA - 2; i >= lcaIdx; i--) {
+        path[pathIdx].number = pathToA[i]->speciesNumber;
+        path[pathIdx].name = pathToA[i]->speciesName;
+        pathIdx++;
+    }
+    
+    // Go down from LCA to B
+    for (int i = lcaIdx + 1; i < lenB; i++) {
+        path[pathIdx].number = pathToB[i]->speciesNumber;
+        path[pathIdx].name = pathToB[i]->speciesName;
+        pathIdx++;
+    }
+    
+    return pathIdx;
+
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -350,8 +470,17 @@ int EvoTreeEvolutionPath(EvoTree et, int speciesNumberA,
  * traversal provided in the `data` array.
  */
 EvoTree EvoTreeConstruct(Species data[], int size) {
-    // TODO
-    return NULL;
+    if (size <= 0) return NULL;
+    
+    EvoTree et = EvoTreeNew();
+    
+    // Simple approach: just insert nodes from the array
+    // The BST property will ensure correct structure
+    for (int i = 0; i < size; i++) {
+        EvoTreeInsert(et, data[i].number, data[i].name);
+    }
+    
+    return et;
 }
 
 ////////////////////////////////////////////////////////////////////////
